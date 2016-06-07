@@ -1,0 +1,42 @@
+{
+	"builders":[{
+		"type": "docker",
+		"image": "{{user `docker_base_img_name`}}",
+		"pull": "{{user `docker_base_img_pull`}}",
+		"volumes": {
+			"/srv/files": "/srv/files"
+		},
+		"export_path": "{{user `docker_osb_img_export_path`}}"
+		}],
+    "provisioners":[
+		{
+			"type": "file",
+			"source": "requirements.txt",
+			"destination": "/tmp/requirements.txt"
+		},{
+			"type": "file",
+			"source": "scripts/docker-entrypoint.sh",
+			"destination": "/docker-entrypoint.sh"
+		},{
+			"type": "shell",
+      		"script": "scripts/setup.sh"
+		},{
+			"type": "ansible-local",
+			"playbook_file": "{{user `docker_ansible_playbook_path`}}",
+			"extra_arguments": [
+				"--tags='{{user `docker_ansible_tags`}}'"
+			]
+		},{
+			"type": "shell",
+      		"environment_vars": [ "PACKER_DISTRO_TYPE={{user `docker_base_img_distro`}}" ],
+      		"script": "scripts/cleanup.sh"
+		}
+    ],
+    "post-processors": [
+        {
+            "type": "docker-import",
+            "repository": "{{user `docker_osb_img_repository`}}",
+            "tag": "{{user `docker_osb_img_tag`}}"
+        }
+    ]
+}
