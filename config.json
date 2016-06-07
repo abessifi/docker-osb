@@ -5,6 +5,6 @@
 	"docker_ansible_playbook_path": "playbooks/provision_sample.yml",
 	"docker_ansible_tags": "install-java,wls-plain-install,osb-plain-install",
 	"docker_osb_img_export_path": "/srv/files/centos-7-osb-12c.tar",
-	"docker_osb_img_repository": "abessifi/centos-7-osb",
+	"docker_osb_img_repository": "abessifi/centos-7-osb-12c",
 	"docker_osb_img_tag": "0.1"
 }
