@@ -11,4 +11,3 @@
       osb_domain_name: 'osb_domain'
       osb_admin_server_listen_address: 'osb.weblogic.local'
       osb_managed_server_listen_address: 'osb.weblogic.local'
-      osb_schemas_created: true
