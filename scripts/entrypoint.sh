@@ -2,6 +2,11 @@
 
 set -e
 
+# Configure the OSB by default
+if [ -z $ANSIBLE_OSB_SETUP_TAGS ]; then
+	ANSIBLE_OSB_SETUP_TAGS="osb-configure"
+fi
+
 # Prepare Ansible inventory file
 echo "localhost" > /tmp/inventory.ini
 
