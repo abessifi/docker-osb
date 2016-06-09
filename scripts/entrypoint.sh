@@ -17,3 +17,6 @@ ANSIBLE_ROLES_PATH=/etc/ansible/roles sudo -Es  ansible-playbook \
    	--tags "$ANSIBLE_OSB_SETUP_TAGS" \
 	--verbose \
 	$ANSIBLE_OSB_SETUP_PLAYBOOK
+
+# Run the NodeManager if foreground mode so Docker can catch the stdout/stderr logs
+su - oracle -c "~/scripts/osb_start_nodemanager.sh"

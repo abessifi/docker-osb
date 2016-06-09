@@ -15,8 +15,8 @@
 			"destination": "/tmp/requirements.txt"
 		},{
 			"type": "file",
-			"source": "scripts/docker-entrypoint.sh",
-			"destination": "/docker-entrypoint.sh"
+			"source": "scripts/entrypoint.sh",
+			"destination": "/entrypoint.sh"
 		},{
 			"type": "shell",
       		"script": "scripts/setup.sh"

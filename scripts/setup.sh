@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Install Ansible required roles
 ansible-galaxy install \
 	--roles-path /etc/ansible/roles/ \
@@ -7,4 +9,4 @@ ansible-galaxy install \
 	--force
 
 # Fix docker entrypoint scipt permissions
-chmod 0755 /docker-entrypoint.sh
+chmod 0755 /entrypoint.sh
