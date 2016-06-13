@@ -1,0 +1,71 @@
+---
+
+#
+# Create and start the database data and service containers
+#
+
+# Ensure that a data-container exists for the database. If no container
+# exists, it will be created, but not started.
+- name: oracle-db | Create the data container
+  docker:
+    name: "{{ oracle_database_data_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: present
+    volumes: "{{ oracle_database_data_ctn_volumes }}"
+  tags:
+    - create-db-data-container
+    - start-db-service-container
+
+# Create and Startup an Oracle database 12c container. Ensure the database data
+# are stored and persisted in the data-container.
+# NOTE: memory_limit seems not working with ansible==1.9.2. memory_limit Tested
+# and worked with Ansible==2.0.0 without setting 'docker_api_version' parameter.
+- name: oracle-db | Run the service container
+  docker:
+    name: "{{ oracle_database_service_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: started
+    hostname: "{{ oracle_database_service_ctn_hostname }}"
+    ports: "{{ oracle_database_service_ctn_ports }}"
+    volumes_from:
+      - "{{ oracle_database_data_ctn_name }}"
+    env: "{{ oracle_database_service_ctn_environment_vars }}"
+    memory_limit: "{{ oracle_database_service_ctn_memory }}"
+    docker_api_version: 1.18
+  tags:
+    - start-db-service-container
+
+#
+# Stop and remove database data and service containers
+#
+
+- name: oracle-db | Stop the service container
+  docker:
+    name: "{{ oracle_database_service_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: stopped
+  tags:
+    - stop-db-service-container
+    - remove-db-service-container
+    - remove-db-data-container
+
+- name: oracle-db | Remove the service container
+  docker:
+    name: "{{ oracle_database_service_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: absent
+  tags:
+    - remove-db-service-container
+    - remove-db-data-container
+
+- name: oracle-db | Remove the data container
+  docker:
+    name: "{{ oracle_database_data_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: absent
+  tags:
+    - remove-db-data-container
+
+#
+# TODO: Wait for database to startup
+#

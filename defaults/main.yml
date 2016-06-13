@@ -1,0 +1,17 @@
+---
+
+#
+# Database container default variables
+#
+
+oracle_database_data_ctn_name: 'db-data-ctn'
+oracle_database_service_ctn_name: 'db-service-ctn'
+
+#
+# OSB container default variables
+#
+
+oracle_osb_data_ctn_name: 'osb-data-ctn'
+oracle_osb_service_ctn_name: 'osb-service-ctn'
+oracle_osb_service_ctn_volumes:
+  - "{{ playbook_dir }}/playbooks/setup_sample.yml:/tmp/setup.yml"

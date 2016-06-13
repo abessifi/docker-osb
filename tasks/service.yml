@@ -1,0 +1,43 @@
+---
+
+#
+# Create and start the osb data and service containers
+#
+
+- name: oracle-osb | Create the data container
+  docker:
+    name: "{{ oracle_osb_data_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: present
+    volumes: "{{ oracle_osb_data_ctn_volumes }}"
+    command: 'true'
+  tags:
+    - create-osb-data-container
+    - start-osb-service-container
+
+- name: oracle-osb | Run the service container
+  docker:
+    name: "{{ oracle_osb_service_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: started
+    hostname: "{{ oracle_osb_service_ctn_hostname }}"
+    links:
+      - "{{ oracle_database_service_ctn_name }}:{{ oracle_database_service_ctn_hostname }}"
+    volumes_from:
+      - "{{ oracle_osb_data_ctn_name }}"
+    volumes: "{{ oracle_osb_service_ctn_volumes }}"
+    ports: "{{ oracle_osb_service_ctn_ports }}"
+    env: "{{ oracle_osb_service_ctn_environment_vars }}"
+    memory_limit: "{{ oracle_osb_service_ctn_memory }}"
+    command: '/entrypoint.sh'
+  tags:
+    - start-osb-service-container
+
+#
+# TODO: Wait for osb service container (the nodemanager) to startup.
+#
+
+- name: oracle-osb | Run the Admin and Managed Servers
+  shell: "docker exec -d {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS=osb-start-adminserver,osb-start-managed-servers /entrypoint.sh\""
+  tags:
+    - start-osb-service-container

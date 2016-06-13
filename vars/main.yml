@@ -1,0 +1,40 @@
+---
+
+#
+# Database container variables
+#
+
+oracle_database_img_name: 'sath89/oracle-12c:latest'
+oracle_database_service_ctn_hostname: 'db.weblogic.local'
+oracle_database_data_ctn_volumes:
+  - '/u01/app/oracle'
+
+oracle_database_service_ctn_ports:
+  - 8080:8080
+  - 1521:1521
+
+oracle_database_service_ctn_environment_vars:
+  DBCA_TOTAL_MEMORY: 768
+
+oracle_database_service_ctn_memory: '1024MB'
+
+#
+# OSB container variables
+#
+
+oracle_osb_img_name: 'abessifi/centos-7-osb-12c:0.1'
+oracle_osb_service_ctn_hostname: 'osb.weblogic.local'
+oracle_osb_data_ctn_volumes:
+  - '/u01'
+  - '/etc/ansible'
+  - '/home/oracle'
+
+oracle_osb_service_ctn_ports:
+  - 7001:7001
+  - 8000:8000
+
+oracle_osb_service_ctn_environment_vars:
+  ANSIBLE_OSB_SETUP_PLAYBOOK: '/tmp/setup.yml'
+  ANSIBLE_OSB_SETUP_TAGS: 'osb-create-db-schemas,osb-configure'
+
+oracle_osb_service_ctn_memory: '4GB'
