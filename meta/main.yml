@@ -1,0 +1,17 @@
+---
+
+galaxy_info:
+  author: Ahmed Bessifi
+  description: Create and configure Docker image/container for OSB
+  license: MIT
+  min_ansible_version: 1.9
+  platforms:
+    - name: EL
+      versions:
+        - 7
+  galaxy_tags:
+    - middleware
+    - oracle
+    - web
+
+dependencies: []

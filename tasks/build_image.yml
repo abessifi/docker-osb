@@ -1,0 +1,50 @@
+---
+
+- name: Create a working directory for packer
+  file:
+    path: "{{ packer_working_directory }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+  become: yes
+  become_user: root
+
+- name: Copy packer build files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ packer_working_directory }}"
+  with_items:
+    - build.json
+    - requirements.txt
+    - entrypoint.sh
+    - setup.sh
+    - cleanup.sh
+
+- name: Copy packer variables file and Ansible playbook
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ packer_working_directory }}/{{ item.dest }}"
+  with_items:
+    - { src: 'config.json.j2', dest: 'config.json' }
+    - { src: 'provision.yml.j2', dest: 'provision.yml' }
+
+- name: Get existing image id
+  shell: "docker images --quiet {{ docker_osb_img_repository }}:{{ docker_osb_img_tag }}"
+  register: osb_img_old_id
+
+- name: Build OSB image with Packer
+  shell: "packer build -var-file=config.json build.json"
+  args:
+    chdir: "{{ packer_working_directory }}"
+  register: packer_rst
+
+# Remove dangling image and free up disk space
+- name: Remove old OSB image
+  shell: "docker rmi {{ osb_img_old_id.stdout }}"
+  when: (packer_rst.rc == 0) and (osb_img_old_id.stdout|length > 0)
+
+- name: Cleanup working directory
+  file:
+    path: "{{ packer_working_directory }}"
+    state: absent
+  become: yes
+  become_user: root

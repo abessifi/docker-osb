@@ -1,5 +1,7 @@
 ---
 
+packer_working_directory: '/usr/local/src/packer'
+
 #
 # Database container variables
 #

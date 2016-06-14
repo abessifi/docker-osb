@@ -15,21 +15,21 @@
 			"destination": "/tmp/requirements.txt"
 		},{
 			"type": "file",
-			"source": "scripts/entrypoint.sh",
+			"source": "entrypoint.sh",
 			"destination": "/entrypoint.sh"
 		},{
 			"type": "shell",
-      		"script": "scripts/setup.sh"
+      		"script": "setup.sh"
 		},{
 			"type": "ansible-local",
-			"playbook_file": "{{user `docker_ansible_playbook_path`}}",
+			"playbook_file": "provision.yml",
 			"extra_arguments": [
 				"--tags='{{user `docker_ansible_tags`}}'"
 			]
 		},{
 			"type": "shell",
       		"environment_vars": [ "PACKER_DISTRO_TYPE={{user `docker_base_img_distro`}}" ],
-      		"script": "scripts/cleanup.sh"
+      		"script": "cleanup.sh"
 		}
     ],
     "post-processors": [

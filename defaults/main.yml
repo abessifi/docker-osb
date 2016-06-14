@@ -1,6 +1,23 @@
 ---
 
 #
+# Packer - build image variables
+#
+
+jdk_rpm_file: 'jdk-8u77-linux-x64.rpm'
+weblogic_jar_file: 'fmw_12.2.1.0.0_infrastructure.jar'
+osb_jar_file: 'fmw_12.2.1.0.0_osb.jar'
+artifacts_download_directory: '/srv/files'
+
+docker_base_img_name: "abessifi/centos-7-ansible:0.1"
+docker_base_img_distro: "centos"
+docker_base_img_pull: "false"
+docker_ansible_tags: 'install-java,install-sqlplus,wls-plain-install,osb-plain-install'
+docker_osb_img_export_path: "{{ artifacts_download_directory }}/centos-7-osb-12c.tar"
+docker_osb_img_repository: 'abessifi/centos-7-osb-12c'
+docker_osb_img_tag: '0.1'
+
+#
 # Database container default variables
 #
 
