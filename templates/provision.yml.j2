@@ -9,7 +9,7 @@
       rpm_download_directory: "{{ artifacts_download_directory }}"
       java_set_as_default: true
 
-    - { role: abessifi.sqlplus, tags: ['install-sqlplus'] }
+    - { role: abessifi.sqlplus, tags: install-sqlplus }
 
     - role: abessifi.weblogic
       weblogic_jar_path: "{{ artifacts_download_directory }}/{{ weblogic_jar_file }}"

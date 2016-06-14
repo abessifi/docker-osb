@@ -2,4 +2,5 @@
 
 - hosts: localhost
   roles:
+    - { role: abessifi.sqlplus, tags: install-sqlplus }
     - role: docker-osb
