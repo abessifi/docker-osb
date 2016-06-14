@@ -4,3 +4,4 @@
   roles:
     - { role: abessifi.sqlplus, tags: install-sqlplus }
     - role: docker-osb
+      oracle_db_address: 'db.weblogic.local'

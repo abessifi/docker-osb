@@ -23,6 +23,12 @@ docker_osb_img_tag: '0.1'
 
 oracle_database_data_ctn_name: 'db-data-ctn'
 oracle_database_service_ctn_name: 'db-service-ctn'
+oracle_db_address: 'localhost'
+oracle_db_port: 1521
+oracle_db_sid: 'xe.oracle.docker'
+oracle_db_user: 'sys'
+oracle_db_password: 'oracle'
+
 
 #
 # OSB container default variables

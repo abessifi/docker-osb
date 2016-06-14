@@ -12,6 +12,7 @@
     image: "{{ oracle_database_img_name }}"
     state: present
     volumes: "{{ oracle_database_data_ctn_volumes }}"
+    docker_api_version: 1.18
   tags:
     - create-db-data-container
     - start-db-service-container
@@ -66,7 +67,16 @@
   tags:
     - remove-db-data-container
 
-# TODO: Wait for database to startup
+- name: Wait for the Database server to startup
+  shell: "echo 'exit' | sqlplus -L {{ oracle_db_user }}/{{ oracle_db_password }}@{{ oracle_db_address }}/{{ oracle_db_sid }} as sysdba"
+  register: sqlplus_rst
+  until: sqlplus_rst.stdout.find('Connected') != -1
+  retries: 15
+  delay: 30
+  tags:
+    - create-db-data-container
+    - start-db-service-container
+    - check-db-connection
 
 #
 # Create and start the osb data and service containers
