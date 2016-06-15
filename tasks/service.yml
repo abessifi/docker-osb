@@ -127,6 +127,20 @@
     - start-osb-service-container
     - check-osb-service-ctn-status
 
+# A little hack (to keep code clean) is to override the 'docker_inspect_rst.stdout'
+# variable if docker inspect command fails.
+- set_fact:
+    docker_inspect_rst:
+      stdout: 'not created'
+  when: docker_inspect_rst.rc != 0
+  tags:
+    - check-osb-service-ctn-status
+
+- debug:
+    msg: "The OSB service container '{{ oracle_osb_service_ctn_name }}' is {{ docker_inspect_rst.stdout }}."
+  tags:
+    - check-osb-container-status
+
 - name: Wait for Nodemanager to Startup
   shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"netstat -tanp | grep -c {{ oracle_osb_nodemanager_ctn_port }}\""
   register: docker_exec_rst
@@ -138,7 +152,7 @@
     - start-osb-service-container
     - check-nodemanager-status
 
-- name: oracle-osb | Run the Admin and Managed Servers
-  shell: "docker exec -d {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS=osb-start-adminserver,osb-start-managed-servers /entrypoint.sh\""
-  tags:
-    - start-osb-service-container
+# - name: oracle-osb | Run the Admin and Managed Servers
+#   shell: "docker exec -d {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS=osb-start-adminserver,osb-start-managed-servers /entrypoint.sh\""
+#   tags:
+#     - start-osb-service-container
