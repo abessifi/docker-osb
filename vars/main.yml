@@ -1,7 +1,13 @@
 ---
 
-packer_working_directory: '/usr/local/src/packer'
+#
+# Build and setup OSB image
+#
 
+packer_working_directory: '/usr/local/src/packer'
+ansible_osb_setup_tags:
+  - osb-start-adminserver
+  - osb-start-managed-servers
 #
 # Database container variables
 #

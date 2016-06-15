@@ -1,7 +1,7 @@
 ---
 
 #
-# Create and start the database data and service containers
+# Create/Start the database data and service containers
 #
 
 # Ensure that a data-container exists for the database. If no container
@@ -87,8 +87,9 @@
     - check-db-connection
 
 #
-# Create and start the osb data and service containers
+# Create/Start the osb data and service containers
 #
+
 
 - name: oracle-osb | Create the data container
   docker:
@@ -152,7 +153,7 @@
     - start-osb-service-container
     - check-nodemanager-status
 
-# - name: oracle-osb | Run the Admin and Managed Servers
-#   shell: "docker exec -d {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS=osb-start-adminserver,osb-start-managed-servers /entrypoint.sh\""
-#   tags:
-#     - start-osb-service-container
+- name: oracle-osb | Run the Admin and Managed Servers
+  shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS={{ ansible_osb_setup_tags|join(',') }} /entrypoint.sh\""
+  tags:
+    - start-osb-service-container
