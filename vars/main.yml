@@ -31,9 +31,15 @@ oracle_osb_data_ctn_volumes:
   - '/etc/ansible'
   - '/home/oracle'
 
+oracle_osb_nodemanager_ctn_port: 5556
+oracle_osb_adminserver_ctn_port: 7001
+oracle_osb_adminserver_host_port: 7001
+oracle_osb_managedserver_ctn_port: 8000
+oracle_osb_managedserver_host_port: 8000
+
 oracle_osb_service_ctn_ports:
-  - 7001:7001
-  - 8000:8000
+  - "{{ oracle_osb_adminserver_host_port }}:{{ oracle_osb_adminserver_ctn_port }}"
+  - "{{ oracle_osb_managedserver_host_port }}:{{ oracle_osb_managedserver_ctn_port }}"
 
 oracle_osb_service_ctn_environment_vars:
   ANSIBLE_OSB_SETUP_PLAYBOOK: '/tmp/setup.yml'

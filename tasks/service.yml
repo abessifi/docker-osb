@@ -40,6 +40,14 @@
 # Stop and remove database data and service containers
 #
 
+- name: oracle-osb | Stop the service container
+  docker:
+    name: "{{ oracle_osb_service_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: stopped
+  tags:
+    - stop-osb-service-container
+
 - name: oracle-db | Stop the service container
   docker:
     name: "{{ oracle_database_service_ctn_name }}"
@@ -111,7 +119,24 @@
   tags:
     - start-osb-service-container
 
-# TODO: Wait for osb service container (the nodemanager) to startup.
+- name: oracle-osb | Get service container status
+  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_osb_service_ctn_name }}"
+  register: docker_inspect_rst
+  ignore_errors: true
+  tags:
+    - start-osb-service-container
+    - check-osb-service-ctn-status
+
+- name: Wait for Nodemanager to Startup
+  shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"netstat -tanp | grep -c {{ oracle_osb_nodemanager_ctn_port }}\""
+  register: docker_exec_rst
+  until: docker_exec_rst.stdout|int == 1
+  retries: 30
+  delay: 10
+  when: docker_inspect_rst.stdout == 'running'
+  tags:
+    - start-osb-service-container
+    - check-nodemanager-status
 
 - name: oracle-osb | Run the Admin and Managed Servers
   shell: "docker exec -d {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS=osb-start-adminserver,osb-start-managed-servers /entrypoint.sh\""
