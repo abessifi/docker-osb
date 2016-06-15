@@ -1,11 +1,69 @@
 ---
 
 #
-# Create/Start the database data and service containers
+# Stop/Remove database data and service containers
 #
 
-# Ensure that a data-container exists for the database. If no container
-# exists, it will be created, but not started.
+- name: oracle-osb | Stop the service container
+  docker:
+    name: "{{ oracle_osb_service_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: stopped
+  tags:
+    - stop-osb-service-container
+    - remove-osb-service-container
+    - remove-osb-data-container
+
+- name: oracle-osb | Remove the service container
+  docker:
+    name: "{{ oracle_osb_service_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: absent
+  tags:
+    - remove-osb-service-container
+    - remove-osb-data-container
+
+- name: oracle-osb | Remove the data container
+  docker:
+    name: "{{ oracle_osb_data_ctn_name }}"
+    image: "{{ oracle_osb_img_name }}"
+    state: absent
+  tags:
+    - remove-osb-data-container
+
+- name: oracle-db | Stop the service container
+  docker:
+    name: "{{ oracle_database_service_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: stopped
+  tags:
+    - stop-db-service-container
+    - remove-db-service-container
+    - remove-db-data-container
+
+- name: oracle-db | Remove the service container
+  docker:
+    name: "{{ oracle_database_service_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: absent
+  tags:
+    - remove-db-service-container
+    - remove-db-data-container
+
+- name: oracle-db | Remove the data container
+  docker:
+    name: "{{ oracle_database_data_ctn_name }}"
+    image: "{{ oracle_database_img_name }}"
+    state: absent
+  tags:
+    - remove-db-data-container
+
+#
+# Create/Start the databas/osb data and service containers
+#
+
+# Ensure that a database data container exists. If no container exists,
+# it will be created, but not started.
 - name: oracle-db | Create the data container
   docker:
     name: "{{ oracle_database_data_ctn_name }}"
@@ -36,60 +94,39 @@
   tags:
     - start-db-service-container
 
-#
-# Stop and remove database data and service containers
-#
-
-- name: oracle-osb | Stop the service container
-  docker:
-    name: "{{ oracle_osb_service_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
-    state: stopped
+- name: oracle-db | Get service container status
+  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_database_service_ctn_name }}"
+  register: docker_db_inspect_rst
+  ignore_errors: true
   tags:
-    - stop-osb-service-container
+    - start-db-service-container
+    - check-db-connection
 
-- name: oracle-db | Stop the service container
-  docker:
-    name: "{{ oracle_database_service_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
-    state: stopped
+# A little hack (to keep code clean) is to override the 'docker_db_inspect_rst.stdout'
+# variable if docker inspect command fails.
+- set_fact:
+    docker_db_inspect_rst:
+      stdout: 'not created'
+  when: docker_db_inspect_rst.rc != 0
   tags:
-    - stop-db-service-container
-    - remove-db-service-container
-    - remove-db-data-container
+    - start-db-service-container
+    - check-db-connection
 
-- name: oracle-db | Remove the service container
-  docker:
-    name: "{{ oracle_database_service_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
-    state: absent
-  tags:
-    - remove-db-service-container
-    - remove-db-data-container
-
-- name: oracle-db | Remove the data container
-  docker:
-    name: "{{ oracle_database_data_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
-    state: absent
-  tags:
-    - remove-db-data-container
-
-- name: Wait for the Database server to startup
+- name: oracle-db | Wait for the Database server to startup
   shell: "echo 'exit' | sqlplus -L {{ oracle_db_user }}/{{ oracle_db_password }}@{{ oracle_db_address }}/{{ oracle_db_sid }} as sysdba"
   register: sqlplus_rst
   until: sqlplus_rst.stdout.find('Connected') != -1
   retries: 15
   delay: 30
+  when: docker_db_inspect_rst.stdout == 'running'
   tags:
-    - create-db-data-container
     - start-db-service-container
     - check-db-connection
 
-#
-# Create/Start the osb data and service containers
-#
-
+- debug:
+    msg: "The Database service container '{{ oracle_database_service_ctn_name }}' is {{ docker_db_inspect_rst.stdout }}."
+  tags:
+    - check-db-connection
 
 - name: oracle-osb | Create the data container
   docker:
@@ -122,23 +159,21 @@
 
 - name: oracle-osb | Get service container status
   shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_osb_service_ctn_name }}"
-  register: docker_inspect_rst
+  register: docker_osb_inspect_rst
   ignore_errors: true
   tags:
     - start-osb-service-container
     - check-osb-service-ctn-status
 
-# A little hack (to keep code clean) is to override the 'docker_inspect_rst.stdout'
-# variable if docker inspect command fails.
 - set_fact:
-    docker_inspect_rst:
+    docker_osb_inspect_rst:
       stdout: 'not created'
-  when: docker_inspect_rst.rc != 0
+  when: docker_osb_inspect_rst.rc != 0
   tags:
     - check-osb-service-ctn-status
 
 - debug:
-    msg: "The OSB service container '{{ oracle_osb_service_ctn_name }}' is {{ docker_inspect_rst.stdout }}."
+    msg: "The OSB service container '{{ oracle_osb_service_ctn_name }}' is {{ docker_osb_inspect_rst.stdout }}."
   tags:
     - check-osb-container-status
 
@@ -148,7 +183,7 @@
   until: docker_exec_rst.stdout|int == 1
   retries: 30
   delay: 10
-  when: docker_inspect_rst.stdout == 'running'
+  when: docker_osb_inspect_rst.stdout == 'running'
   tags:
     - start-osb-service-container
     - check-nodemanager-status
