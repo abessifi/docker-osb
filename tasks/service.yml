@@ -13,6 +13,7 @@
     - stop-osb-service-container
     - remove-osb-service-container
     - remove-osb-data-container
+    - stop-all-services
 
 - name: oracle-osb | Remove the service container
   docker:
@@ -40,6 +41,7 @@
     - stop-db-service-container
     - remove-db-service-container
     - remove-db-data-container
+    - stop-all-services
 
 - name: oracle-db | Remove the service container
   docker:
@@ -74,6 +76,7 @@
   tags:
     - create-db-data-container
     - start-db-service-container
+    - start-all-services
 
 # Create and Startup an Oracle database 12c container. Ensure the database data
 # are stored and persisted in the data-container.
@@ -93,6 +96,7 @@
     docker_api_version: 1.18
   tags:
     - start-db-service-container
+    - start-all-services
 
 - name: oracle-db | Get service container status
   shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_database_service_ctn_name }}"
@@ -100,6 +104,7 @@
   ignore_errors: true
   tags:
     - start-db-service-container
+    - start-all-services
     - check-db-connection
 
 # A little hack (to keep code clean) is to override the 'docker_db_inspect_rst.stdout'
@@ -110,18 +115,19 @@
   when: docker_db_inspect_rst.rc != 0
   tags:
     - start-db-service-container
+    - start-all-services
     - check-db-connection
 
 - name: oracle-db | Wait for the Database server to startup
-  shell: "echo 'exit' | sqlplus -L {{ oracle_db_user }}/{{ oracle_db_password }}@{{ oracle_db_address }}/{{ oracle_db_sid }} as sysdba"
+  shell: "docker logs --tail=1 {{ oracle_database_service_ctn_name }}"
   register: sqlplus_rst
-  until: sqlplus_rst.stdout.find('Connected') != -1
-  retries: 15
-  delay: 30
+  until: sqlplus_rst.stdout.find('Database ready to use') != -1
+  retries: 30
+  delay: 20
   when: docker_db_inspect_rst.stdout == 'running'
   tags:
     - start-db-service-container
-    - check-db-connection
+    - start-all-services
 
 - debug:
     msg: "The Database service container '{{ oracle_database_service_ctn_name }}' is {{ docker_db_inspect_rst.stdout }}."
@@ -138,6 +144,7 @@
   tags:
     - create-osb-data-container
     - start-osb-service-container
+    - start-all-services
 
 - name: oracle-osb | Run the service container
   docker:
@@ -156,6 +163,7 @@
     command: '/entrypoint.sh'
   tags:
     - start-osb-service-container
+    - start-all-services
 
 - name: oracle-osb | Get service container status
   shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_osb_service_ctn_name }}"
@@ -164,6 +172,7 @@
   tags:
     - start-osb-service-container
     - check-osb-service-ctn-status
+    - start-all-services
 
 - set_fact:
     docker_osb_inspect_rst:
@@ -186,9 +195,10 @@
   when: docker_osb_inspect_rst.stdout == 'running'
   tags:
     - start-osb-service-container
-    - check-nodemanager-status
+    - start-all-services
 
 - name: oracle-osb | Run the Admin and Managed Servers
   shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS={{ ansible_osb_setup_tags|join(',') }} /entrypoint.sh\""
   tags:
     - start-osb-service-container
+    - start-all-services
