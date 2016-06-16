@@ -17,9 +17,14 @@ oracle_database_service_ctn_hostname: 'db.weblogic.local'
 oracle_database_data_ctn_volumes:
   - '/u01/app/oracle'
 
-oracle_database_service_ctn_ports:
-  - 8080:8080
-  - 1521:1521
+oracle_db_server_ctn_port: 8080
+oracle_db_server_host_port: 8080
+oracle_db_webadmin_ctn_port: 1521
+oracle_db_webadmin_host_port: 1521
+
+oracle_database_service_ctn_mapped_ports:
+  - "{{ oracle_db_server_host_port }}:{{ oracle_db_server_ctn_port }}"
+  - "{{ oracle_db_webadmin_host_port }}:{{ oracle_db_webadmin_ctn_port }}"
 
 oracle_database_service_ctn_environment_vars:
   DBCA_TOTAL_MEMORY: 768
@@ -43,7 +48,11 @@ oracle_osb_adminserver_host_port: 7001
 oracle_osb_managedserver_ctn_port: 8000
 oracle_osb_managedserver_host_port: 8000
 
-oracle_osb_service_ctn_ports:
+oracle_osb_service_ctn_exposed_ports:
+  - "{{ oracle_osb_adminserver_ctn_port }}"
+  - "{{ oracle_osb_managedserver_ctn_port }}"
+
+oracle_osb_service_ctn_mapped_ports:
   - "{{ oracle_osb_adminserver_host_port }}:{{ oracle_osb_adminserver_ctn_port }}"
   - "{{ oracle_osb_managedserver_host_port }}:{{ oracle_osb_managedserver_ctn_port }}"
 

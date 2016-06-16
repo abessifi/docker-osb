@@ -88,7 +88,7 @@
     image: "{{ oracle_database_img_name }}"
     state: started
     hostname: "{{ oracle_database_service_ctn_hostname }}"
-    ports: "{{ oracle_database_service_ctn_ports }}"
+    ports: "{{ oracle_database_service_ctn_mapped_ports }}"
     volumes_from:
       - "{{ oracle_database_data_ctn_name }}"
     env: "{{ oracle_database_service_ctn_environment_vars }}"
@@ -157,7 +157,8 @@
     volumes_from:
       - "{{ oracle_osb_data_ctn_name }}"
     volumes: "{{ oracle_osb_service_ctn_volumes }}"
-    ports: "{{ oracle_osb_service_ctn_ports }}"
+    expose: "{{ oracle_osb_service_ctn_exposed_ports }}"
+    ports: "{{ oracle_osb_service_ctn_mapped_ports }}"
     env: "{{ oracle_osb_service_ctn_environment_vars }}"
     memory_limit: "{{ oracle_osb_service_ctn_memory }}"
     command: '/entrypoint.sh'
