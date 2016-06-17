@@ -12,52 +12,68 @@ ansible_osb_setup_tags:
 # Database container variables
 #
 
-oracle_database_img_name: 'sath89/oracle-12c:latest'
-oracle_database_service_ctn_hostname: 'db.weblogic.local'
-oracle_database_data_ctn_volumes:
+docker_database_img_name: 'sath89/oracle-12c:latest'
+
+docker_database_address: 'localhost'
+docker_database_port: 1521
+docker_database_sid: 'xe.oracle.docker'
+docker_database_user: 'sys'
+docker_database_password: 'oracle'
+
+docker_database_data_ctn_name: 'db-data-ctn'
+docker_database_data_ctn_volumes:
   - '/u01/app/oracle'
 
-oracle_db_server_ctn_port: 8080
-oracle_db_server_host_port: 8080
-oracle_db_webadmin_ctn_port: 1521
-oracle_db_webadmin_host_port: 1521
+docker_database_service_ctn_name: 'db-service-ctn'
+docker_database_service_ctn_hostname: 'db.weblogic.local'
 
-oracle_database_service_ctn_mapped_ports:
+docker_database_server_ctn_port: 8080
+docker_database_server_host_port: 8080
+docker_database_webadmin_ctn_port: 1521
+docker_database_webadmin_host_port: 1521
+
+docker_database_service_ctn_mapped_ports:
   - "{{ oracle_db_server_host_port }}:{{ oracle_db_server_ctn_port }}"
   - "{{ oracle_db_webadmin_host_port }}:{{ oracle_db_webadmin_ctn_port }}"
 
-oracle_database_service_ctn_environment_vars:
-  DBCA_TOTAL_MEMORY: 768
+docker_database_service_ctn_environment_vars:
+  DBCA_TOTAL_MEMORY: "{{ docker_database_dbca_memory | default(768) }}"
 
-oracle_database_service_ctn_memory: '1024MB'
+docker_database_service_ctn_memory: '1024MB'
 
 #
 # OSB container variables
 #
 
-oracle_osb_img_name: 'abessifi/centos-7-osb-12c:0.1'
-oracle_osb_service_ctn_hostname: 'osb.weblogic.local'
-oracle_osb_data_ctn_volumes:
+docker_osb_img_name: 'abessifi/centos-7-osb-12c:0.1'
+
+docker_osb_data_ctn_name: 'osb-data-ctn'
+docker_osb_data_ctn_volumes:
   - '/u01'
   - '/etc/ansible'
   - '/home/oracle'
 
-oracle_osb_nodemanager_ctn_port: 5556
-oracle_osb_adminserver_ctn_port: 7001
-oracle_osb_adminserver_host_port: 7001
-oracle_osb_managedserver_ctn_port: 8000
-oracle_osb_managedserver_host_port: 8000
+docker_osb_service_ctn_hostname: 'osb.weblogic.local'
+docker_osb_service_ctn_name: 'osb-service-ctn'
+docker_osb_service_ctn_volumes:
+  - "{{ playbook_dir }}/playbooks/setup_sample.yml:/tmp/setup.yml"
 
-oracle_osb_service_ctn_exposed_ports:
-  - "{{ oracle_osb_adminserver_ctn_port }}"
-  - "{{ oracle_osb_managedserver_ctn_port }}"
+docker_osb_nodemanager_ctn_port: 5556
+docker_osb_adminserver_ctn_port: 7001
+docker_osb_adminserver_host_port: 7001
+docker_osb_managedserver_ctn_port: 8000
+docker_osb_managedserver_host_port: 8000
 
-oracle_osb_service_ctn_mapped_ports:
-  - "{{ oracle_osb_adminserver_host_port }}:{{ oracle_osb_adminserver_ctn_port }}"
-  - "{{ oracle_osb_managedserver_host_port }}:{{ oracle_osb_managedserver_ctn_port }}"
+docker_osb_service_ctn_exposed_ports:
+  - "{{ docker_osb_adminserver_ctn_port }}"
+  - "{{ docker_osb_managedserver_ctn_port }}"
 
-oracle_osb_service_ctn_environment_vars:
+docker_osb_service_ctn_mapped_ports:
+  - "{{ docker_osb_adminserver_host_port }}:{{ docker_osb_adminserver_ctn_port }}"
+  - "{{ docker_osb_managedserver_host_port }}:{{ docker_osb_managedserver_ctn_port }}"
+
+docker_osb_service_ctn_environment_vars:
   ANSIBLE_OSB_SETUP_PLAYBOOK: '/tmp/setup.yml'
   ANSIBLE_OSB_SETUP_TAGS: 'osb-create-db-schemas,osb-configure'
 
-oracle_osb_service_ctn_memory: '4GB'
+docker_osb_service_ctn_memory: '4GB'

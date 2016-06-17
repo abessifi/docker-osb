@@ -7,34 +7,19 @@
 jdk_rpm_file: 'jdk-8u77-linux-x64.rpm'
 weblogic_jar_file: 'fmw_12.2.1.0.0_infrastructure.jar'
 osb_jar_file: 'fmw_12.2.1.0.0_osb.jar'
+sqlplus_basic_rpm_file: 'oracle-instantclient12.1-basic-12.1.0.2.0-1.x86_64.rpm'
+sqlplus_bin_rpm_file: 'oracle-instantclient12.1-sqlplus-12.1.0.2.0-1.x86_64.rpm'
 artifacts_download_directory: '/srv/files'
 
-docker_base_img_name: "abessifi/centos-7-ansible:0.1"
-docker_base_img_distro: "centos"
-docker_base_img_pull: "false"
-docker_ansible_tags: 'install-java,install-sqlplus,wls-plain-install,osb-plain-install'
+docker_osb_base_img_name: 'abessifi/centos-7-ansible'
+docker_osb_base_img_distro: 'centos'
+docker_osb_base_img_pull: 'true'
+
+docker_ansible_tags:
+  - install-java
+  - wls-plain-install
+  - osb-plain-install
+
 docker_osb_img_export_path: "{{ artifacts_download_directory }}/centos-7-osb-12c.tar"
-docker_osb_img_repository: 'abessifi/centos-7-osb-12c'
-docker_osb_img_tag: '0.1'
-
-#
-# Database container default variables
-#
-
-oracle_database_data_ctn_name: 'db-data-ctn'
-oracle_database_service_ctn_name: 'db-service-ctn'
-oracle_db_address: 'localhost'
-oracle_db_port: 1521
-oracle_db_sid: 'xe.oracle.docker'
-oracle_db_user: 'sys'
-oracle_db_password: 'oracle'
-
-
-#
-# OSB container default variables
-#
-
-oracle_osb_data_ctn_name: 'osb-data-ctn'
-oracle_osb_service_ctn_name: 'osb-service-ctn'
-oracle_osb_service_ctn_volumes:
-  - "{{ playbook_dir }}/playbooks/setup_sample.yml:/tmp/setup.yml"
+docker_osb_img_repository: 'foobar/centos-7-osb-12c'
+docker_osb_img_tag: 'latest'

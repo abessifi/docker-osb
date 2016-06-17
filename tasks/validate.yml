@@ -1,2 +1,31 @@
 ---
-# EMPTY
+#
+# Check JARs and RPMs existence
+#
+
+- name: Make sure the Oracle JDK RPM installer exists
+  stat:
+    path: "{{ artifacts_download_directory }}/{{ jdk_rpm_file }}"
+  register: package_path
+
+- fail:
+    msg: "The Oracle JDK RPM installer didn't exist: '{{ artifacts_download_directory }}/{{ jdk_rpm_file }}' !"
+  when: not package_path.stat.exists
+
+- name: Make sure the Oracle WebLogic Jar installer exists
+  stat:
+    path: "{{ artifacts_download_directory }}/{{ weblogic_jar_file }}"
+  register: package_path
+
+- fail:
+    msg: "The Oracle WebLogic installer didn't exist: '{{ artifacts_download_directory }}/{{ weblogic_jar_file }}' !"
+  when: not package_path.stat.exists
+
+- name: Make sure the Oracle OSB installer exists
+  stat:
+    path: "{{ artifacts_download_directory }}/{{ osb_jar_file }}"
+  register: package_path
+
+- fail:
+    msg: "The Oracle OSB installer didn't exist: '{{ artifacts_download_directory }}/{{ osb_jar_file }}' !"
+  when: not package_path.stat.exists

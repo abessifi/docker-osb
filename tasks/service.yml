@@ -6,8 +6,8 @@
 
 - name: oracle-osb | Stop the service container
   docker:
-    name: "{{ oracle_osb_service_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
+    name: "{{ docker_osb_service_ctn_name }}"
+    image: "{{ docker_osb_img_name }}"
     state: stopped
   tags:
     - stop-osb-service-container
@@ -17,8 +17,8 @@
 
 - name: oracle-osb | Remove the service container
   docker:
-    name: "{{ oracle_osb_service_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
+    name: "{{ docker_osb_service_ctn_name }}"
+    image: "{{ docker_osb_img_name }}"
     state: absent
   tags:
     - remove-osb-service-container
@@ -26,16 +26,16 @@
 
 - name: oracle-osb | Remove the data container
   docker:
-    name: "{{ oracle_osb_data_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
+    name: "{{ docker_osb_data_ctn_name }}"
+    image: "{{ docker_osb_img_name }}"
     state: absent
   tags:
     - remove-osb-data-container
 
 - name: oracle-db | Stop the service container
   docker:
-    name: "{{ oracle_database_service_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
+    name: "{{ docker_database_service_ctn_name }}"
+    image: "{{ docker_database_img_name }}"
     state: stopped
   tags:
     - stop-db-service-container
@@ -45,8 +45,8 @@
 
 - name: oracle-db | Remove the service container
   docker:
-    name: "{{ oracle_database_service_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
+    name: "{{ docker_database_service_ctn_name }}"
+    image: "{{ docker_database_img_name }}"
     state: absent
   tags:
     - remove-db-service-container
@@ -54,8 +54,8 @@
 
 - name: oracle-db | Remove the data container
   docker:
-    name: "{{ oracle_database_data_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
+    name: "{{ docker_database_data_ctn_name }}"
+    image: "{{ docker_database_img_name }}"
     state: absent
   tags:
     - remove-db-data-container
@@ -68,10 +68,10 @@
 # it will be created, but not started.
 - name: oracle-db | Create the data container
   docker:
-    name: "{{ oracle_database_data_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
+    name: "{{ docker_database_data_ctn_name }}"
+    image: "{{ docker_database_img_name }}"
     state: present
-    volumes: "{{ oracle_database_data_ctn_volumes }}"
+    volumes: "{{ docker_database_data_ctn_volumes }}"
     docker_api_version: 1.18
   tags:
     - create-db-data-container
@@ -84,22 +84,22 @@
 # and worked with Ansible==2.0.0 without setting 'docker_api_version' parameter.
 - name: oracle-db | Run the service container
   docker:
-    name: "{{ oracle_database_service_ctn_name }}"
-    image: "{{ oracle_database_img_name }}"
+    name: "{{ docker_database_service_ctn_name }}"
+    image: "{{ docker_database_img_name }}"
     state: started
-    hostname: "{{ oracle_database_service_ctn_hostname }}"
-    ports: "{{ oracle_database_service_ctn_mapped_ports }}"
+    hostname: "{{ docker_database_service_ctn_hostname }}"
+    ports: "{{ docker_database_service_ctn_mapped_ports }}"
     volumes_from:
-      - "{{ oracle_database_data_ctn_name }}"
-    env: "{{ oracle_database_service_ctn_environment_vars }}"
-    memory_limit: "{{ oracle_database_service_ctn_memory }}"
+      - "{{ docker_database_data_ctn_name }}"
+    env: "{{ docker_database_service_ctn_environment_vars }}"
+    memory_limit: "{{ docker_database_service_ctn_memory }}"
     docker_api_version: 1.18
   tags:
     - start-db-service-container
     - start-all-services
 
 - name: oracle-db | Get service container status
-  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_database_service_ctn_name }}"
+  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ docker_database_service_ctn_name }}"
   register: docker_db_inspect_rst
   ignore_errors: true
   tags:
@@ -119,7 +119,7 @@
     - check-db-connection
 
 - name: oracle-db | Wait for the Database server to startup
-  shell: "docker logs --tail=1 {{ oracle_database_service_ctn_name }}"
+  shell: "docker logs --tail=1 {{ docker_database_service_ctn_name }}"
   register: sqlplus_rst
   until: sqlplus_rst.stdout.find('Database ready to use') != -1
   retries: 30
@@ -130,16 +130,16 @@
     - start-all-services
 
 - debug:
-    msg: "The Database service container '{{ oracle_database_service_ctn_name }}' is {{ docker_db_inspect_rst.stdout }}."
+    msg: "The Database service container '{{ docker_database_service_ctn_name }}' is {{ docker_db_inspect_rst.stdout }}."
   tags:
     - check-db-connection
 
 - name: oracle-osb | Create the data container
   docker:
-    name: "{{ oracle_osb_data_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
+    name: "{{ docker_osb_data_ctn_name }}"
+    image: "{{ docker_osb_img_name }}"
     state: present
-    volumes: "{{ oracle_osb_data_ctn_volumes }}"
+    volumes: "{{ docker_osb_data_ctn_volumes }}"
     command: 'true'
   tags:
     - create-osb-data-container
@@ -148,26 +148,26 @@
 
 - name: oracle-osb | Run the service container
   docker:
-    name: "{{ oracle_osb_service_ctn_name }}"
-    image: "{{ oracle_osb_img_name }}"
+    name: "{{ docker_osb_service_ctn_name }}"
+    image: "{{ docker_osb_img_name }}"
     state: started
-    hostname: "{{ oracle_osb_service_ctn_hostname }}"
+    hostname: "{{ docker_osb_service_ctn_hostname }}"
     links:
-      - "{{ oracle_database_service_ctn_name }}:{{ oracle_database_service_ctn_hostname }}"
+      - "{{ docker_database_service_ctn_name }}:{{ docker_database_service_ctn_hostname }}"
     volumes_from:
-      - "{{ oracle_osb_data_ctn_name }}"
-    volumes: "{{ oracle_osb_service_ctn_volumes }}"
-    expose: "{{ oracle_osb_service_ctn_exposed_ports }}"
-    ports: "{{ oracle_osb_service_ctn_mapped_ports }}"
-    env: "{{ oracle_osb_service_ctn_environment_vars }}"
-    memory_limit: "{{ oracle_osb_service_ctn_memory }}"
+      - "{{ docker_osb_data_ctn_name }}"
+    volumes: "{{ docker_osb_service_ctn_volumes }}"
+    expose: "{{ docker_osb_service_ctn_exposed_ports }}"
+    ports: "{{ docker_osb_service_ctn_mapped_ports }}"
+    env: "{{ docker_osb_service_ctn_environment_vars }}"
+    memory_limit: "{{ docker_osb_service_ctn_memory }}"
     command: '/entrypoint.sh'
   tags:
     - start-osb-service-container
     - start-all-services
 
 - name: oracle-osb | Get service container status
-  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ oracle_osb_service_ctn_name }}"
+  shell: "docker inspect --format {% raw %} '{{ .State.Status }}' {% endraw %} {{ docker_osb_service_ctn_name }}"
   register: docker_osb_inspect_rst
   ignore_errors: true
   tags:
@@ -183,12 +183,12 @@
     - check-osb-service-ctn-status
 
 - debug:
-    msg: "The OSB service container '{{ oracle_osb_service_ctn_name }}' is {{ docker_osb_inspect_rst.stdout }}."
+    msg: "The OSB service container '{{ docker_osb_service_ctn_name }}' is {{ docker_osb_inspect_rst.stdout }}."
   tags:
     - check-osb-container-status
 
 - name: Wait for Nodemanager to Startup
-  shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"netstat -tanp | grep -c {{ oracle_osb_nodemanager_ctn_port }}\""
+  shell: "docker exec {{ docker_osb_service_ctn_name }} bash -c \"netstat -tanp | grep -c {{ docker_osb_nodemanager_ctn_port }}\""
   register: docker_exec_rst
   until: docker_exec_rst.stdout|int == 1
   retries: 30
@@ -199,7 +199,7 @@
     - start-all-services
 
 - name: oracle-osb | Run the Admin and Managed Servers
-  shell: "docker exec {{ oracle_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS={{ ansible_osb_setup_tags|join(',') }} /entrypoint.sh\""
+  shell: "docker exec {{ docker_osb_service_ctn_name }} bash -c \"ANSIBLE_OSB_SETUP_TAGS={{ ansible_osb_setup_tags|join(',') }} /entrypoint.sh\""
   tags:
     - start-osb-service-container
     - start-all-services

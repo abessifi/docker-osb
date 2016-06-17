@@ -1,5 +1,9 @@
 ---
 
-- include: prepare.yml
+- include: validate.yml
+  tags:
+    - build-osb-base-image
 
-- include: service.yml
+- include: prepare.yml
+#
+# - include: service.yml

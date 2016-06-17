@@ -8,13 +8,11 @@
   become: yes
   become_user: root
 
-- name: Copy packer build files
+- name: Copy packer scripts files
   copy:
     src: "{{ item }}"
     dest: "{{ packer_working_directory }}"
   with_items:
-    - build.json
-    - requirements.txt
     - entrypoint.sh
     - setup.sh
     - cleanup.sh
@@ -24,6 +22,8 @@
     src: "{{ item.src }}"
     dest: "{{ packer_working_directory }}/{{ item.dest }}"
   with_items:
+    - { src: 'requirements.txt.j2', dest: 'requirements.txt' }
+    - { src: 'build.json.j2', dest: 'build.json' }
     - { src: 'config.json.j2', dest: 'config.json' }
     - { src: 'provision.yml.j2', dest: 'provision.yml' }
 

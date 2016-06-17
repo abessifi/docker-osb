@@ -9,7 +9,9 @@
       rpm_download_directory: "{{ artifacts_download_directory }}"
       java_set_as_default: true
 
+{% if 'install-sqlplus' in docker_ansible_tags %}
     - { role: abessifi.sqlplus, tags: install-sqlplus }
+{% endif %}
 
     - role: abessifi.weblogic
       weblogic_jar_path: "{{ artifacts_download_directory }}/{{ weblogic_jar_file }}"

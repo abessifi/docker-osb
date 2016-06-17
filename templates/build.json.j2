@@ -1,10 +1,13 @@
+{% raw %}
 {
 	"builders":[{
 		"type": "docker",
-		"image": "{{user `docker_base_img_name`}}",
-		"pull": "{{user `docker_base_img_pull`}}",
+		"image": "{{user `docker_osb_base_img_name`}}",
+		"pull": "{{user `docker_osb_base_img_pull`}}",
 		"volumes": {
-			"/srv/files": "/srv/files"
+{% endraw %}
+			"{{ artifacts_download_directory }}": "/srv/files"
+{% raw %}
 		},
 		"export_path": "{{user `docker_osb_img_export_path`}}"
 		}],
@@ -28,7 +31,7 @@
 			]
 		},{
 			"type": "shell",
-      		"environment_vars": [ "PACKER_DISTRO_TYPE={{user `docker_base_img_distro`}}" ],
+      		"environment_vars": [ "PACKER_DISTRO_TYPE={{user `docker_osb_base_img_distro`}}" ],
       		"script": "cleanup.sh"
 		}
     ],
@@ -40,3 +43,4 @@
         }
     ]
 }
+{% endraw %} 
