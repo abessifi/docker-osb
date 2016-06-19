@@ -186,15 +186,14 @@ To create and start the database container, just run the following playbook with
     - role: abessifi.docker-osb
 ```
 
-
-	ansible-playbook -c local --tags="start-db-service-container" -v provision.yml
+    $ ansible-playbook -c local --tags="start-db-service-container" -v provision.yml
 
 **Note:** this is the most time consuming task during a platform deployment. It's duration is about `8 minutes`.
 
 ## Remove the database data container
 For a fresh OSB re-installation, for example, you can remove if you want the database service container, purge data and instantiate a new one:
 
-	ansible-playbook -c local --tags="remove-db-data-container" -v provision.yml
+    $ ansible-playbook -c local --tags="remove-db-data-container" -v provision.yml
 
 **Note:** purging the database container data leads to automatically stop and remove the service container.
 
@@ -202,7 +201,7 @@ For a fresh OSB re-installation, for example, you can remove if you want the dat
 
 It is possible to perform the deployment of the OSB platform, database included, in one single shot using the Ansible tag `start-all-services`:
 
-	ansible-playbook -c local --tags="start-all-services" -v provision.yml
+    $ ansible-playbook -c local --tags="start-all-services" -v provision.yml
 
 Here is an example of an Ansible playbook that throwing a Docker container with 6GB of memory:
 
@@ -228,7 +227,7 @@ After deployment you can access/query :
 
 To start the OSB service, after a system issue for instance, you can call Ansible the `start-osb-service-container` tag:
 
-  ansible-playbook -c local --tags="start-osb-service-container" provision.yml
+    $ ansible-playbook -c local --tags="start-osb-service-container" provision.yml
 
 # Development and testing
 
