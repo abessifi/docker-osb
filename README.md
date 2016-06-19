@@ -55,7 +55,6 @@ A plain installation using this Ansible role and running a nodemanager, an Admin
 - **`docker_ansible_tags`** - Tags passed to Packer to provision the OSB image with Ansible (default: `[install-java, wls-plain-install, osb-plain-install]`)
 - **`docker_osb_img_repository`** - The generated OSB Docker image name (default: `foobar/centos-7-osb-12c`)
 - **`docker_osb_img_tag`** -  The generated OSB Docker image tag (default: `latest`)
-- **`packer_working_directory`** - Absolute path to the Packer working directory where the build template, the configuration file, provisioning playbook/scripts will be copied (default: `/usr/local/src/packer`)
 - **`ansible_osb_setup_tags`** - Tags which are passed to the embedded `ansible-osb` role to finish configuring the OSB container with Ansible by initializing the AdminServer and the ManagedServer services (default: `[osb-start-adminserver, osb-start-managed-servers]`)
 
 #### Database container setup and connection
@@ -64,31 +63,77 @@ A plain installation using this Ansible role and running a nodemanager, an Admin
 - **`docker_database_port`** - The database connection system identifier (default: `1521`)
 - **`docker_database_sid`** - The database connection system identifier (default: `xe.oracle.docker`)
 - **`docker_database_user`** - The database admin user name (default: `sys`)
+- **`docker_database_img_name`** - The Docker image name including an oracle 12c database server (default: `sath89/oracle-12c:latest`)
 - **`docker_database_password`** - The database admin user password (default: `oracle`)
-- **`docker_database_service_ctn_hostname`** - The Oracle database address/hostname (default: `db.weblogic.local`)
 - **`docker_database_data_ctn_name`** - The database data volume container name (default: `db-data-ctn`)
+- **`docker_database_service_ctn_hostname`** - The Oracle database address/hostname (default: `db.weblogic.local`)
 - **`docker_database_service_ctn_name`** - The database service container name (default: `db-service-ctn`)
 - **`docker_database_server_host_port`** - The host 'public' port to map to the container database server port (default: `1521`)
 - **`docker_database_webadmin_host_port`** - The host 'public' port to map to the container database webadmin http port (default: `8080`)
 - **`docker_database_dbca_memory`** - Max Oracle DBCA memory (default: `768`)
 - **`docker_database_service_ctn_memory`** - Max memory allocated to the database service container (default: `1024MB`)
 
+#### OSB container setup and connection
+
+- **`docker_osb_img_name`** - The OSB image name (default: `foobar/centos-7-osb-12c`)
+- **`docker_osb_data_ctn_name`** - The OSB data volume container name (default: `osb-data-ctn`)
+- **`docker_osb_service_ctn_name`** - The OSB service container name (default: `osb-service-ctn`)
+- **`docker_osb_service_ctn_hostname`** - The OSB container address/hostname (default: `osb.weblogic.local`)
+- **`docker_osb_adminserver_host_port`** - The host 'public' port to map to the AdminServer http port (default: `7001`)
+- **`docker_osb_managedserver_host_port`** - The host 'public' port to map to the ManagedServer http port (defaul: `8000`)
+- **`docker_osb_service_ctn_memory`** - Max memory allocated to the OSB service container (default: `4GB`)
 
 ## Available tags
 
-- **`build-osb-base-image`** - Use this tag if you want to build and tag an OSB image.
-- **``**
-- **``**
+- **`build-osb-base-image`** - Build and tag an OSB image
+- **`create-db-data-container`** - Create the database data container
+- **`start-db-service-container`** - Start the database service container
+- **`stop-db-service-container`** - Stop the database service container
+- **`remove-db-service-container`** - Remove  the database service container
+- **`remove-db-data-container`** - Remove the database data and service container
+- **`check-db-connection`** - Get database service container status
+- **`create-osb-data-container`** - Create the OSB data container
+- **`start-osb-service-container`** - Start the OSB service container
+- **`stop-osb-service-container`** - Stop the OSB service container
+- **`remove-osb-service-container`** - Remove  the OSB service container
+- **`remove-osb-data-container`** - Remove the OSB data and service containers
+- **`check-osb-service-ctn-status`** - Get the OSB service container status
+- **`start-all-services`** - Create and start the database and the OSB data/service containers
+- **`stop-all-services`** - Stop the database and the OSB service containers
 
 ## Local facts
 
 - None.
 
-# Image build workflow and containers lifecycle
+# Image build process and containers lifecycle
 
-Put an image and a description here.
+## Typical CI/CD process
+
+![alt tag](docs/images/typical_CI_CD_process.png)
+
+The above picture is an overview of a typical and classical Continuous Integration and Continuous Delivery process. Basically, the idea is to build, tag and push the OSB image to a public/private Docker registry which can be used later for deploying an OSB platform on-the-fly. A CI tool such as Jenkins can automate the entire process allowing deployment of an OSB development/testing platform from scratch in less than 20 minutes.
+
+## OSB image/container build and setup
+
+The following diagram describes the different steps to build and deploy an OSB platform. All build and deployment processes are fully automated. The tricky part is how to start the **Nodemanager** process in foreground, so Docker can catch the stderr/stdout logs, and then running the **AdminServer** and **ManagedServer** processes.
+
+Basically the idea is to startup the OSB container with the Nodemanager as a first step, wait for it to be up and then finally attack the container with a `docker exec` to run the AdminServer/ManagedServer processes.
+
+**Note:** Actually All WebLogic services are running in the same container. This is a Docker anti-pattern and before long, this role will support splitting each service in a separate container to run the OSB platform in a clustered mode.
+
+![alt tag](docs/images/build_and_setup_steps.png)
+
+## Database and OSB containers lifecycle
+
+This is mainly the containers lifecycle which is managed directly with the role tags (see `Available tags` section).
+
+![alt tag](docs/images/containers_lifecycle.png)
+
+**Note:** After initialization, the OSB platform is fully functional. In case of a graceful stop or a system issue, you can reboot the database and the OSB containers. All the data and configuration are persisted so the Nodemanager will run correctly and will automatically start the AdminServer and the ManagedServer processes and put them to the correct state.
 
 # Usage
+
+All the following use cases and ansible-playbook commands are ran locally for quick tests reasons. To provision a remote server, you have just to correctly prepare the Ansible inventory file and the host/group variables. You can take a look on the Vagrantfile and see the actual configuration example to understand a bit how to run this Ansible role on a Vagrant VM (section `Test with Vagrant`).
 
 ## Installation
 
@@ -110,9 +155,11 @@ You can use this role within a Continuous Integration process to build, tag and 
 
 and then call Ansible to play it:
 
-	$ ansible-playbook -c local --tags='build-osb-base-image' provision.yml
+	$ ansible-playbook -c local --tags="build-osb-base-image" provision.yml
 
-#### What if you include the SQL*PLUS client tool ?
+**Note:** this task duration is about `7 minutes`.
+
+#### What if you want to include the SQL*PLUS client tool ?
 
 It is easy to include the SQL*PLUS database client tool to the OSB base image. A such tool can be very helpful for testing and debugging database connection issues. To do so, use the following Ansible playbook and build the image:
 
@@ -129,129 +176,69 @@ It is easy to include the SQL*PLUS database client tool to the OSB base image. A
       docker_osb_img_tag: '0.1'
 ```
 
-## Use cases
+## Create and start the database service container
 
-First of all add the database container fqdn, by default `db.weblogic.local`, to the host's /etc/hosts file.
-
-#### Run database container
-
-
-
-
-Personally and for quick tests, I use the Docker image [sath89/oracle-12c](https://hub.docker.com/r/sath89/oracle-12c/) that brings up an Oracle 12c database server. All you need is to pull the image, create a local data directory and spin up an `oracle-db` container:
-
-	$ sudo docker pull sath89/oracle-12c:latest
-	$ sudo mkdir -p /var/lib/oracledb/data
-    $ sudo docker run --name oracle-db -d -p 8080:8080 -p 1521:1521 -v /var/lib/oracledb/data:/u01/app/oracle -e DBCA_TOTAL_MEMORY=1024 sath89/oracle-12c
-
-To test the database connection:
-
-	$ sqlplus -L sys/oracle@db.weblogic.local/xe.oracle.docker as sysdba
-
-	Connected to:
-	Oracle Database 12c Standard Edition Release 12.1.0.2.0 - 64bit Production
-
-	SQL>
-
-
-### All from scratch
-
-First, download Oracle JDK 8 rpm, Fusion Middleware Infrastructure and OSB 12c installer JARs and put them somewhere in the server to provision. Below an example:
-
-	$ ls -1 /srv/files/
-	fmw_12.2.1.0.0_infrastructure.jar
-	fmw_12.2.1.0.0_osb.jar
-	jdk-8u77-linux-x64.rpm
-
-Next, clone this project and download the required Ansible roles to install and configure the Oracle JDK and the WebLogic platform:
-
-	$ sudo ansible-galaxy install -p /etc/ansible/roles/ -r requirements.txt
-
-To install an Oracle Service Bus Infrastructure (that uses Oracle JDK 8 as the Java Virtual Machine) you can use the following `provision.yml` playbook:
+To create and start the database container, just run the following playbook with the `start-db-service-container` tag.
 
 ```yaml
-- hosts: my-server
+- hosts: localhost
   roles:
-    - role: abessifi.java
-      sudo: yes
-      java_version: 8
-      java_jdk_type: 'oracle'
-      oracle_jdk_rpm_package: 'jdk-8u77-linux-x64.rpm'
-      rpm_download_directory: '/srv/files'
-      java_set_as_default: true
-      tags:
-        - install-java
-
-    - role: abessifi.weblogic
-      weblogic_jar_path: '/srv/files/fmw_12.2.1.0.0_infrastructure.jar'
-      weblogic_quick_installation: false
-      weblogic_installation_type: 'Fusion Middleware Infrastructure'
-      weblogic_domain_name: 'osb_domain'
-
-    - role: ansible-osb
-      osb_jar_path: '/srv/files/fmw_12.2.1.0.0_osb.jar'
-      oracle_db_address: 'db.weblogic.local'
-      oracle_db_sid: 'xe.oracle.docker'
-      oracle_db_password: 'oracle'
-      osb_schemas_common_password: 'oracle'
-      osb_domain_name: 'osb_domain'
-      osb_admin_server_listen_address: 'osb.weblogic.local'
-      osb_managed_server_listen_address: 'osb.weblogic.local'
+    - role: abessifi.docker-osb
 ```
 
-That's all ! It's now time to call Ansible to provision your server. Here is an example of ansible-playbook command:
 
-	$ ansible-playbook --user=<user-name> --connection=ssh --timeout=30 --inventory-file=inventory.ini --tags='install-java,wls-plain-install,osb-plain-install' -v provision.yml
+	ansible-playbook -c local --tags="start-db-service-container" -v provision.yml
+
+**Note:** this is the most time consuming task during a platform deployment. It's duration is about `8 minutes`.
+
+## Remove the database data container
+For a fresh OSB re-installation, for example, you can remove if you want the database service container, purge data and instantiate a new one:
+
+	ansible-playbook -c local --tags="remove-db-data-container" -v provision.yml
+
+**Note:** purging the database container data leads to automatically stop and remove the service container.
+
+## Deploy all from scratch
+
+It is possible to perform the deployment of the OSB platform, database included, in one single shot using the Ansible tag `start-all-services`:
+
+	ansible-playbook -c local --tags="start-all-services" -v provision.yml
+
+Here is an example of an Ansible playbook that throwing a Docker container with 6GB of memory:
+
+```yaml
+- hosts: localhost
+  roles:
+    - role: docker-osb
+      docker_osb_service_ctn_memory: '6GB'
+      docker_osb_adminserver_host_port: 9000
+      docker_osb_managedserver_host_port: 9001
+```
+
+After deployment you can access/query :
+- The AdminServer configuration console: http://localhost:9000/console
+- The OSB configuration console: http://localhost:9000/servicebus
+- The OSB application server: http://localhost:9001/
 
 **Notes:**
+- Ansible provision and brings an OSB platform up and running in about `13 minutes` (database included).
+- Use `docker stats` command to check the memory limitation.
 
-- In the above playbook example, the `db.weblogic.local` refers to the host machine where the oracle database is installed and the `osb.weblogic.local` is the FQDN of the server we are provisioning.
-- Make sure you have updated `/etc/hosts` file, so the FQDNs `db.weblogic.local` and `osb.weblogic.local` can be resolved correctly. Otherwise, replace the FQDNs by IP address in the playbook.
-- You need to create and adapt the Ansible inventory files and variables to suit your environment (services ports, IP addresses, etc)
+## Start OSB service
 
-### Purge existing OSB schemas
+To start the OSB service, after a system issue for instance, you can call Ansible the `start-osb-service-container` tag:
 
-If you want to purge an existing OSB schemas and start a clean installation, use the Ansible tags `osb-purge-db-schemas` and set the role parameter `osb_schemas_created` to remove the schemas from the Oracle database before recreating them during installation process:
-
-	$ ansible-playbook --user=<user-name> --connection=ssh --timeout=30 --inventory-file=inventory.ini --tags='install-java,wls-plain-install,osb-purge-db-schemas,osb-plain-install' -v provision.yml
-
-### Installation on top of an existing WebLogic platform
-
-The installation is kept straightforward even with a such use case ! Just specify the **absolute path** of the Oracle Middleware installation directory using the `middleware_home_dir` parameter:
-
-```yaml
-- hosts: my-server
-  roles:
-
-    - role: ansible-osb
-      osb_jar_path: '/srv/files/fmw_12.2.1.0.0_osb.jar'
-      oracle_db_address: 'db.weblogic.local'
-      oracle_db_sid: 'xe.oracle.docker'
-      oracle_db_password: 'oracle'
-      osb_schemas_common_password: 'oracle'
-      middleware_home_dir: '/u01/app/oracle/product/middleware_12.2.1'
-      osb_domain_name: 'osb_domain'
-      osb_admin_server_listen_address: 'osb.weblogic.local'
-      osb_managed_server_listen_address: 'osb.weblogic.local'
-```
-
-	$ ansible-playbook --user=<user-name> --connection=ssh --timeout=30 --inventory-file=inventory.ini --tags='osb-plain-install' -v provision.yml
-
-Note that the only passed Ansible tag to perform the installation is `osb-plain-install`.
-
-### Restart cluster services
-
-In case of problem with the WebLogic instances, you can restart the chain service by restarting the Nodemanager service "the entrypoint":
-
-	$ ansible-playbook --user=<user-name> --connection=ssh --timeout=30 --inventory-file=inventory.ini --tags='osb-restart-nodemanager' -v provision.yml
+  ansible-playbook -c local --tags="start-osb-service-container" provision.yml
 
 # Development and testing
 
 ## Test with Vagrant
 
+TODO.
 
 ## Run acceptance tests
 
+TODO.
 
 ## Notes
 
@@ -259,20 +246,6 @@ In case of problem with the WebLogic instances, you can restart the chain servic
 - Containers memory limitation didn't work correctly with Ansible 1.9.2. If you care about memory limitation, you can run this role with Ansible 2.0 and make sure that containers memory is limited as expected.
 - Actually, the OSB container depends on the database container image `sath89/oracle-12c`. If you want to build and link a database container, based on another Docker image, the provisioning may fail.
 
-## Author
+# Author
 
 This role was created by [Ahmed Bessifi](https://www.linkedin.com/in/abessifi), a DevOps enthusiast.
-
-
-
-
-
-
-
-
-
-
-
-
-
-![alt tag](typical_ci_cd_workflow.png)

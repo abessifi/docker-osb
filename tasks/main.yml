@@ -5,5 +5,5 @@
     - build-osb-base-image
 
 - include: prepare.yml
-#
-# - include: service.yml
+
+- include: service.yml

@@ -5,4 +5,3 @@
     # TODO: Install SQL*PLUS to check and test database connection
     # - { role: abessifi.sqlplus, tags: install-sqlplus }
     - role: docker-osb
-      oracle_db_address: 'db.weblogic.local'

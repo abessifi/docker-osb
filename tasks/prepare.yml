@@ -7,3 +7,20 @@
 - include: build_image.yml
   tags:
     - build-osb-base-image
+
+- name: Create a working directory
+  file:
+    path: "{{ docker_osb_working_directory }}"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+  become: yes
+  become_user: root
+  tags:
+    - start-osb-service-container
+
+- name: Copy Ansible playbook for container setup
+  template:
+    src: "setup.yml.j2"
+    dest: "{{ docker_osb_working_directory }}/setup.yml"
+  tags:
+    - start-osb-service-container

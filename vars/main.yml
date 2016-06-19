@@ -33,8 +33,8 @@ docker_database_webadmin_ctn_port: 1521
 docker_database_webadmin_host_port: 1521
 
 docker_database_service_ctn_mapped_ports:
-  - "{{ oracle_db_server_host_port }}:{{ oracle_db_server_ctn_port }}"
-  - "{{ oracle_db_webadmin_host_port }}:{{ oracle_db_webadmin_ctn_port }}"
+  - "{{ docker_database_server_host_port }}:{{ docker_database_server_ctn_port }}"
+  - "{{ docker_database_webadmin_host_port }}:{{ docker_database_webadmin_ctn_port }}"
 
 docker_database_service_ctn_environment_vars:
   DBCA_TOTAL_MEMORY: "{{ docker_database_dbca_memory | default(768) }}"
@@ -45,7 +45,9 @@ docker_database_service_ctn_memory: '1024MB'
 # OSB container variables
 #
 
-docker_osb_img_name: 'abessifi/centos-7-osb-12c:0.1'
+docker_osb_working_directory: '/usr/local/etc/docker-osb'
+
+docker_osb_img_name: 'foobar/centos-7-osb-12c'
 
 docker_osb_data_ctn_name: 'osb-data-ctn'
 docker_osb_data_ctn_volumes:
@@ -56,7 +58,7 @@ docker_osb_data_ctn_volumes:
 docker_osb_service_ctn_hostname: 'osb.weblogic.local'
 docker_osb_service_ctn_name: 'osb-service-ctn'
 docker_osb_service_ctn_volumes:
-  - "{{ playbook_dir }}/playbooks/setup_sample.yml:/tmp/setup.yml"
+  - "{{ docker_osb_working_directory }}/setup.yml:/tmp/setup.yml"
 
 docker_osb_nodemanager_ctn_port: 5556
 docker_osb_adminserver_ctn_port: 7001
